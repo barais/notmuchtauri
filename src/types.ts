@@ -73,3 +73,20 @@ export interface MessageDto {
 export interface ThreadDto {
   roots: MessageDto[];
 }
+
+export interface AttachmentPayload {
+  path: string;
+  mimeType?: string;
+}
+
+export interface EmailPayload {
+  from: string;
+  to: string[];
+  cc: string[];
+  bcc: string[];
+  subject: string;
+  body: string;
+  isHtml: boolean;
+  attachments: AttachmentPayload[];
+  account?: string;
+}

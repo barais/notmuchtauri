@@ -4,6 +4,7 @@ import { invoke } from "@tauri-apps/api/core";
 import type { Message, FolderNode, AppConfig } from "./types";
 import MailDetail from "./components/MailDetail.vue";
 import FolderTree from "./components/FolderTree.vue";
+import ComposeEmailModal from "./components/ComposeEmailModal.vue";
 
 const searchQuery = ref("");
 const messages = ref<Message[]>([]);
@@ -77,7 +78,6 @@ async function initApp() {
 
     }
   } catch (e) {
-    console.error("Init error:", e);
     error.value = "Failed to initialize app configuration";
   }
 }
@@ -151,6 +151,14 @@ function onFolderSelected(path: string) {
 onMounted(() => {
   initApp();
 });
+
+function removetag(messageId: string) {
+  messages.value.forEach((msg) => {
+    if (msg.id === messageId) {
+      msg.tags = msg.tags.filter(tag => tag.toLowerCase() !== 'unread');
+    }
+  });
+}
 </script>
 
 <template>
@@ -212,7 +220,9 @@ onMounted(() => {
                </button>
              </div>
            </div>
-        </div>        <div class="flex-1 overflow-y-auto">
+        </div>      
+        <ComposeEmailModal/>
+        <div class="flex-1 overflow-y-auto">
           <FolderTree
             :nodes="folderTree"
             :selected-path="currentPath"
@@ -250,12 +260,17 @@ onMounted(() => {
           <li
             v-for="msg in messages"
             :key="msg.id"
-            :class="['p-4 cursor-pointer transition-colors hover:bg-gray-50 dark:hover:bg-zinc-800',
-                     selectedMessageId === msg.id ? 'bg-blue-50 dark:bg-blue-900/20 border-l-4 border-blue-500' : '']"
+             :class="[
+    'p-4 cursor-pointer transition-colors hover:bg-gray-50 dark:hover:bg-zinc-800',
+    selectedMessageId === msg.id ? 'bg-blue-50 dark:bg-blue-900/20 border-l-4 border-blue-500' : '',
+    msg.tags.includes('unread') ? 'font-bold' : ''
+      ]"
             @dblclick="selectMessage(msg.id)"
           >
             <div class="flex justify-between items-start mb-1">
-              <div class="font-semibold truncate text-sm">{{ msg.subject }}</div>
+              <div :class="['truncate text-sm' ,
+                 msg.tags.includes('unread') ? 'font-semibold' : ''
+              ]">{{ msg.subject }}</div>
               <div class="text-xs text-gray-400">{{ msg.date }}</div>
             </div>
             <div class="text-xs text-gray-500 truncate">{{ msg.from }}</div>
@@ -276,7 +291,8 @@ onMounted(() => {
     <main class="flex-1 min-w-[75] flex flex-col bg-white dark:bg-zinc-950 border-l border-gray-200 dark:border-zinc-800 overflow-hidden">
       <div v-if="selectedMessageId" 
       class="h-full overflow-hidden">
-        <MailDetail 
+        <MailDetail  
+          @mark-as-read="removetag"
                 :key="selectedMessageId"
 
         :message-id="selectedMessageId" />

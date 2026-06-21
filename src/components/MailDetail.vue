@@ -8,16 +8,19 @@ const props = defineProps<{
   messageId: string
 }>()
 
+  const read = defineEmits(['mark-as-read']);
+
 const message = ref<ThreadDto[] | null>(null)
 const loading = ref(false)
 const error = ref<string | null>(null)
+
+  
 
 async function fetchDetails() {
   loading.value = true
   error.value = null
   try {
     const details = await invoke<ThreadDto[]>('get_message_details', { id: props.messageId })
-    console.error('Fetched details:', details)
     message.value = details
   } catch (e) {
     error.value = e instanceof Error ? e.message : String(e)
@@ -26,8 +29,24 @@ async function fetchDetails() {
   }
 }
 
-onMounted(() => {
-  fetchDetails()
+
+
+onMounted(async () => {
+  await fetchDetails()
+
+          try {
+    await invoke('modify_message_tag', { 
+      messageId: props.messageId, 
+      tag: 'unread', 
+      action: 'remove' 
+    })
+    console.error(`Tag 'unread' removed for message ID: ${props.messageId}`);
+    read('mark-as-read', props.messageId) 
+  } catch (error) {
+    console.error(`Erreur lors du retrait du tag remove:`, error)
+  }
+
+
 })
 </script>
 

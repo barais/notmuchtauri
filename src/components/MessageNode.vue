@@ -439,6 +439,19 @@ const closeTagModal = () => {
 
 // --- Fonctions utilitaires d'affichage ---
 onMounted(async () => {
+
+        try {
+            props.message.tags = props.message.tags.filter(tag => tag.toLowerCase() !== 'unread')
+    await invoke('modify_message_tag', { 
+      messageId: props.message.id, 
+      tag: 'unread', 
+      action: 'remove' 
+    })
+  } catch (error) {
+    console.error(`Erreur lors du retrait du tag remove:`, error)
+  }
+
+
   // Si le message n'a pas d'images inline ou pas de HTML, on s'arrête là
   if (!props.message.htmlBody || props.message.inlineImages.length === 0) return
 
@@ -468,6 +481,7 @@ onMounted(async () => {
       // 4. Remplacer 'cid:VOTRE_ID' partout dans le HTML (src="", background-image, etc.)
       const regex = new RegExp(`cid:${safeCid}`, 'gi')
       tempHtml = tempHtml.replace(regex, dataUrl)
+      
 
     } catch (error) {
       console.error(`Impossible de charger l'image inline CID: ${rawCid}`, error)
@@ -475,7 +489,7 @@ onMounted(async () => {
   }
 
   // 5. Mettre à jour la vue avec le HTML modifié
-  processedHtml.value = tempHtml
+  processedHtml.value = tempHtml;
 })
 
 

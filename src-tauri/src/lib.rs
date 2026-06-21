@@ -4,9 +4,11 @@
 mod config;
 mod folder_scan;
 mod notmuch;
+mod msmtp;
 use config::{AppConfig, ConfigManager};
 use folder_scan::{FolderNode, FolderScanner};
 use notmuch::{Message, NotMuchWrapper};
+use msmtp::{EmailPayload, MSMTPWrapper};
 
 use crate::notmuch::ThreadDto;
 
@@ -74,6 +76,13 @@ fn modify_message_tag(message_id: &str, tag: &str, action: &str) -> Result<(), S
 }
 
 #[tauri::command]
+async fn send_email(payload: EmailPayload) -> Result<(), String> {
+    MSMTPWrapper::send_email(payload).await.map_err(|e| e.to_string())
+}
+
+
+
+#[tauri::command]
 fn greet(name: &str) -> String {
     format!("Hello, {}! You've been greeted from Rust!", name)
 }
@@ -92,7 +101,8 @@ pub fn run() {
             scan_mail_folders,
             get_message_part,
             save_message_part,
-            modify_message_tag
+            modify_message_tag,
+            send_email
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

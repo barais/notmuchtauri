@@ -283,6 +283,10 @@ impl NotMuchWrapper {
     }
 
 pub fn modify_message_tag(message_id: &str, tag: &str, action: &str) -> Result<(), String> {
+
+    println!("Modifying tag '{}' for message ID '{}' with action '{}'", tag, message_id, action);
+
+    
     // action doit être "add" ou "remove"
     let prefix = match action {
         "add" => "+",
@@ -295,6 +299,7 @@ pub fn modify_message_tag(message_id: &str, tag: &str, action: &str) -> Result<(
 
     // On exécute: notmuch tag +tag_name -- id:message_id
     // Le "--" sécurise la commande au cas où le tag ou l'ID commence par un tiret
+
     let output = Command::new("notmuch")
         .args(["tag", &tag_arg, "--", &id_arg])
         .output()
@@ -307,6 +312,9 @@ pub fn modify_message_tag(message_id: &str, tag: &str, action: &str) -> Result<(
         Err(format!("Erreur notmuch: {}", err))
     }
 }
+
+
+
 }
 
 /// Convertit le JSON brut de Notmuch en une liste de ThreadDto prêts pour Tauri/Vue
