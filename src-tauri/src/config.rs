@@ -1,7 +1,7 @@
 use serde::{Deserialize, Serialize};
+use std::error::Error;
 use std::fs;
 use std::path::PathBuf;
-use std::error::Error;
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct AppConfig {
@@ -25,7 +25,7 @@ impl ConfigManager {
         // In a real Tauri app, we'd use tauri::api::path::app_config_dir()
         // For now, we look for a simple config.json in the current directory or home
         let config_path = PathBuf::from("/home/barais/git/notmuchtauri/notmuchtauri/config.json");
-        println!("Loading config from: {:?}", config_path.as_path().display() );
+        println!("Loading config from: {:?}", config_path.as_path().display());
         if !config_path.exists() {
             return Ok(AppConfig::default());
         }

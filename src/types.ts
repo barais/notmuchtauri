@@ -66,6 +66,8 @@ export interface MessageDto {
   inlineImages: AttachmentDto[];
   attachments: AttachmentDto[];
   replies: MessageDto[];
+    tags: string[];
+
 }
 
 export interface ThreadDto {

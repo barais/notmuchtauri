@@ -1,7 +1,7 @@
-use std::fs;
-use std::path::{Path};
-use serde::{Serialize, Deserialize};
+use serde::{Deserialize, Serialize};
 use std::error::Error;
+use std::fs;
+use std::path::Path;
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct FolderNode {
@@ -25,9 +25,7 @@ impl FolderScanner {
                 let path = entry.path();
 
                 if path.is_dir() {
-                    let name = entry.file_name().to_str()
-                        .unwrap_or("Unknown")
-                        .to_string();
+                    let name = entry.file_name().to_str().unwrap_or("Unknown").to_string();
 
                     if Self::is_maildir(&path) {
                         nodes.push(FolderNode {
@@ -38,17 +36,22 @@ impl FolderScanner {
                         });
                     } else {
                         // Not a maildir, but might contain maildirs, so we recurse
-                        
-                        let pathname = path.file_name();
-                        if pathname.is_some() && !pathname.unwrap().to_string_lossy().to_string().starts_with(".") {
-                        let children = Self::scan(&path).unwrap_or_default();
-                        nodes.push(FolderNode {
-                            name,
-                            path: path.to_string_lossy().to_string(),
-                            is_maildir: false,
-                            children,
-                        });
 
+                        let pathname = path.file_name();
+                        if pathname.is_some()
+                            && !pathname
+                                .unwrap()
+                                .to_string_lossy()
+                                .to_string()
+                                .starts_with(".")
+                        {
+                            let children = Self::scan(&path).unwrap_or_default();
+                            nodes.push(FolderNode {
+                                name,
+                                path: path.to_string_lossy().to_string(),
+                                is_maildir: false,
+                                children,
+                            });
                         }
                     }
                 }
