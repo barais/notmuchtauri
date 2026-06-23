@@ -253,7 +253,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, onMounted, inject } from 'vue'
+import { ref, reactive, onMounted } from 'vue'
 import { invoke } from '@tauri-apps/api/core' // Tauri v2
 import {  open } from '@tauri-apps/plugin-dialog' // API native pour ouvrir l'explorateur de fichiers
 import { QuillEditor } from '@vueup/vue-quill';
