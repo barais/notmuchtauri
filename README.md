@@ -2,7 +2,6 @@
 
 **NotmuchTauri** is a fast, lightweight Mail User Agent (MUA) developed using **Tauri, Vue 3, TypeScript, and Tailwind CSS**, built on top of [Notmuch](https://notmuchmail.org/) for Linux and macOS environments. It provides a ligthweigth integration of Custom Providers (OpenAI LLM integration) 
 
-🎥 **[Watch a short demo here](https://videos.diverse-team.fr/notmuch-electron.html)**
 
 ---
 
