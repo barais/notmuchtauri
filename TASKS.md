@@ -49,6 +49,7 @@ Ce fichier suit l'avancement du développement. Chaque tâche doit être validé
   - Raccourcis clavier.
   - Design final.
 - [ ] **Tâche 12 : Transformer en ICS un message**
-- [ ] **Tâche 13 : Transformer en tâche un message**
+- [ ] **Tâche 13 : Transformer en tâche un message** https://www.rememberthemilk.com/services/email/
 - [x] **Tâche 14 : une unique instance**
-
+- [x] ** Refresh new mail every é minutes**
+- [ ] To get push, notifications when new email arrive, I use a personal version of [node-imapnotify](https://github.com/barais/node-imapnotify) based on the initial version of [node-imapnotify](https://github.com/a-sk/node-imapnotify/).

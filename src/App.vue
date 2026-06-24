@@ -134,6 +134,7 @@ async function search(sort: string = "newest-first", customQuery: string = "") {
   } catch (e) {
     error.value = e instanceof Error ? e.message : String(e);
   } finally {
+    resetAutoSearchTimer();
     isLoading.value = false;
   }
 }
@@ -354,6 +355,25 @@ const closeTabsToLeft = (targetId: string) => {
     }
   }
 }
+// Variable pour stocker le timer
+let autoSearchTimer: ReturnType<typeof setTimeout> | null = null;
+
+// Fonction qui annule l'ancien timer et en crée un nouveau de 2 minutes (120 000 ms)
+function resetAutoSearchTimer() {
+  if (autoSearchTimer) {
+    clearTimeout(autoSearchTimer);
+  }
+  
+  autoSearchTimer = setTimeout(() => {
+    // On relance la recherche sans bloquer l'UI
+    search();
+  }, 120_000); 
+}
+
+// Nettoyage à la fermeture
+onUnmounted(() => {
+  if (autoSearchTimer) clearTimeout(autoSearchTimer);
+});
 
 </script>
 
@@ -436,19 +456,39 @@ const closeTabsToLeft = (targetId: string) => {
       <div
         class="p-3 border-b border-gray-200 dark:border-zinc-800 flex justify-between items-center bg-gray-50 dark:bg-zinc-900/50">
         <span class="text-sm font-medium">{{ messages.length }} results</span>
-        <div class="flex gap-2">
+ <div class="flex gap-2">
+          <!-- NOUVEAU : Bouton Rafraîchir / Forcer la recherche -->
+          <button 
+            @click="search()"
+            class="text-xs px-2 py-1 flex items-center gap-1 border rounded hover:bg-gray-100 dark:hover:bg-zinc-800 transition-colors text-gray-700 dark:text-zinc-300"
+            title="Rafraîchir les messages"
+            :disabled="isLoading"
+            :class="{'opacity-50 cursor-not-allowed': isLoading}"
+          >
+            <!-- Icône de synchronisation/rafraîchissement qui tourne quand isLoading est true -->
+            <svg 
+              class="w-3.5 h-3.5" 
+              :class="{'animate-spin': isLoading}"
+              fill="none" stroke="currentColor" viewBox="0 0 24 24"
+            >
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+            </svg>
+            Refresh
+          </button>
+
           <!-- Câblage du Select All -->
           <button @click="selectAll"
             class="text-xs px-2 py-1 border rounded hover:bg-gray-100 dark:hover:bg-zinc-800 transition-colors">
             Select All
           </button>
+
+          <!-- Bouton Delete -->
           <button class="text-xs px-2 py-1 bg-red-100 text-red-600 rounded hover:bg-red-200 transition-colors">
             Delete
             <!-- Afficher le nombre d'éléments à supprimer -->
             <span v-if="selectedIds.size > 0">({{ selectedIds.size }})</span>
           </button>
-        </div>
-      </div>
+        </div>     </div>
 
       <div class="flex-1 overflow-y-auto relative">
         <div v-if="isLoading" class="p-8 text-center text-gray-500">Searching...</div>

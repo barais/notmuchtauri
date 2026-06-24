@@ -1,8 +1,19 @@
 {
   "root_mail_dir": "/home/barais/mail",
   "default_path": "/home/barais/mail/IRISA/INBOX",
-  "limit":1000,
-  "accounts":[{ "id": "irisa", "label": "Compte IRISA", "email": "barais@irisa.fr", "sent_folder":"IRISA/Sent" },
-  { "id": "rennes1", "label": "Compte Univ Rennes ", "email": "olivier.barais@univ-rennes.fr" }],
-  "default_sent_folder":"Sent"
+  "limit": 1000,
+  "accounts": [
+    {
+      "id": "irisa",
+      "label": "Compte IRISA",
+      "email": "barais@irisa.fr",
+      "sent_folder": "IRISA/Sent"
+    },
+    {
+      "id": "rennes1",
+      "label": "Compte Univ Rennes ",
+      "email": "olivier.barais@univ-rennes.fr"
+    }
+  ],
+  "default_sent_folder": "Sent"
 }
