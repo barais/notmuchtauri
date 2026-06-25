@@ -189,7 +189,15 @@ const localConfig = ref<AppConfig>({
   default_path: '',
   limit: 1000,
   accounts: [],
-  default_sent_folder: ''
+  default_sent_folder: '',
+  calendaremail: "",
+  llm: {
+    api_url: "https://ragarenn.eskemm-numerique.fr/sso/ch@t/api/chat/completions",
+    api_key: "",
+    model: "ilaas/gemma-4-31b"
+  }
+
+
 });
 
 // -- Méthodes de la Modale --
@@ -241,6 +249,13 @@ const saveConfig = async () => {
       default_path: localConfig.value.default_path || '',
       limit: localConfig.value.limit || 1000,
       default_sent_folder: localConfig.value.default_sent_folder || 'Sent',
+        calendaremail: "",
+        llm: {
+          api_url: "https://ragarenn.eskemm-numerique.fr/sso/ch@t/api/chat/completions",
+          api_key: "",
+          model: "ilaas/gemma-4-31b"
+        },
+
       accounts: localConfig.value.accounts?.map(acc => ({
         ...acc,
         sent_folder: acc.sent_folder || undefined
