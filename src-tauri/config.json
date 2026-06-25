@@ -16,5 +16,9 @@
       "sent_folder": null
     }
   ],
-  "default_sent_folder": "Sent"
+  "default_sent_folder": "Sent",
+    "rmtmmail":"olivier.barais+5ba373@rmilk.com",
+  "lthostport":"http://localhost:8081",
+  "calendaremail": "barais@irisa.fr"
+
 }

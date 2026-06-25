@@ -94,6 +94,22 @@ fn get_reply_data(
 fn lookup_address(query: String, limit: usize) -> Result<Vec<AddressMatch>, String> {
     NotMuchWrapper::lookup_address_limited(&query, limit).map_err(|e| e.to_string())
 }
+
+#[tauri::command]
+async fn send_ics_email(
+    to_addresses: Vec<String>, 
+    subject: &str, 
+    body: &str, 
+    ics_content: &str,
+    sentfolder:&str
+) -> Result<(), String>{
+        MSMTPWrapper::send_ics_email(to_addresses,subject,body,ics_content,sentfolder)
+        .await
+        .map_err(|e| e.to_string())
+}
+
+
+
 /*
  fn lookup_address(query: &str) -> Result<Vec<AddressMatch>, String> {
 NotMuchWrapper::lookup_address(query).map_err(|e| e.to_string())
@@ -125,7 +141,8 @@ pub fn run() {
             modify_message_tag,
             send_email,
             get_reply_data,
-            lookup_address
+            lookup_address,
+            send_ics_email
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

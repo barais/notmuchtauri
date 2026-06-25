@@ -65,6 +65,13 @@ onUnmounted(() => {
 });
 
 
+const getConfig:()=> AppConfig|undefined = ()=> {
+  return config.value;
+}
+
+provide('appConfig',getConfig);
+
+
 async function initApp() {
   try {
     // 1. Load configuration

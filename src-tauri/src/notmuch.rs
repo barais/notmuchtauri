@@ -447,6 +447,7 @@ impl NotMuchWrapper {
         Ok(matches)
     }
 
+    
     /// Helper to parse the notmuch-addrlookup format: "Name <email>" or "email"
     fn parse_addr_line(line: &str) -> Option<AddressMatch> {
         if let Some(start_bracket) = line.find('<') {

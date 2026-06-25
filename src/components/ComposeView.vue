@@ -209,7 +209,7 @@
               <option value="en-US">English</option>
             </select>
 
-            <button @click="checkSpelling" :disabled="isCheckingSpelling"
+            <button @click="checkSpelling" :disabled="isCheckingSpelling || !props.config?.lthostport"
               class="px-3 py-1.5 text-sm bg-blue-50 text-blue-700 hover:bg-blue-100 rounded-md transition-colors">
               {{ isCheckingSpelling ? 'Vérification...' : "Vérifier l'orthographe" }}
             </button>
@@ -705,7 +705,6 @@ const sendEmail = async () => {
       return;
     }
 
-    console.error('send_email', payload)
     await invoke('send_email', { payload })
     successMsg.value = "Message envoyé avec succès !";
     emit('sent', props.tabsId)
@@ -827,7 +826,7 @@ const checkSpelling = async () => {
     params.append('text', textToCheck)
     params.append('language', spellLanguage.value)
 
-    const response = await fetch('http://localhost:8081/v2/check', {
+    const response = await fetch(props.config?.lthostport+'/v2/check', {
       method: 'POST',
       headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
       body: params

@@ -29,7 +29,11 @@ export interface AppConfig {
   default_path: string;
   limit:number,
   accounts: AccountConfig[]
-  default_sent_folder:string
+  default_sent_folder:string,
+  rmtmmail?: string
+  lthostport?: string
+  calendaremail:string
+  
 }
 
 export interface Thread {

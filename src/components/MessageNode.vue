@@ -286,7 +286,20 @@
       </div>
     </div>
   </Teleport>
+<!-- La modale téléportée -->
+  <RtmTaskModal 
+    :is-open="isTaskModalOpen" 
+    :message="selectedMessageForTask" 
+    @close="isTaskModalOpen = false"
+    @task-created="onTaskCreated"
+  />
 
+  <IcsEventModal 
+    :is-open="isEventModalOpen" 
+    :message="selectedMessageForEvent" 
+    @close="isEventModalOpen = false"
+    @event-created="isEventModalOpen = false"
+  />
 </template>
 
 <script setup lang="ts">
@@ -294,7 +307,8 @@ import { ref, computed, PropType, onMounted, watch, nextTick, inject } from 'vue
 import type { AttachmentDto, MessageDto } from '../types' // Ajustez le chemin
 import { invoke } from '@tauri-apps/api/core'
 import { save } from '@tauri-apps/plugin-dialog' // ou '@tauri-apps/api/dialog' (v1)
-
+import RtmTaskModal from './RtmTaskModal.vue'
+import IcsEventModal from './IcsEventModal.vue'
 
 const props = defineProps({
   message: {
@@ -629,6 +643,28 @@ const snippet = computed(() => {
   const clean = text.replace(/\s+/g, ' ').trim()
   return clean.length > 80 ? clean.substring(0, 80) + '...' : clean || '(Contenu HTML / Sans texte)'
 })
+
+// (Vos autres imports et variables)
+const isTaskModalOpen = ref(false)
+const selectedMessageForTask = ref<MessageDto | null>(null)
+
+const convertToTask = (message: MessageDto) => {
+  selectedMessageForTask.value = message
+  isTaskModalOpen.value = true
+}
+
+const onTaskCreated = () => {
+  console.log("Tâche RTM créée avec succès !")
+  // Optionnel : afficher une notification toast ici
+}
+
+const isEventModalOpen = ref(false)
+const selectedMessageForEvent = ref<MessageDto | null>(null)
+
+const convertToEvent = (message: MessageDto) => {
+  selectedMessageForEvent.value = message
+  isEventModalOpen.value = true
+}
 </script>
 
 <style scoped>

@@ -119,7 +119,6 @@ impl MSMTPWrapper {
                 .parse()
                 .map_err(|_| format!("Type MIME invalide pour {}", file_name))?;
 
-
             let attachment = Attachment::new(file_name).body(content, mime_type);
             multipart = multipart.singlepart(attachment);
          
@@ -178,6 +177,89 @@ impl MSMTPWrapper {
 
         Ok(())
     }
+
+pub  async fn send_ics_email(
+    to_addresses: Vec<String>, 
+    subject: &str, 
+    body: &str, 
+    ics_content: &str,
+    sentfolder:&str
+) -> Result<(), String> {
+    
+    // 1. Démarrer la construction de l'e-mail
+    // Pensez à remplacer "votre_email" par la lecture de l'adresse de l'utilisateur
+    let mut builder = Message::builder()
+        .from("votre_email@domaine.com".parse().unwrap())
+        .subject(subject);
+
+    // Ajouter tous les destinataires (lettre gère "Nom <email@domaine.com>" ou juste "email@domaine.com")
+    for addr in to_addresses {
+        let parsed_addr = addr.parse().map_err(|_| format!("Adresse invalide: {}", addr))?;
+        builder = builder.to(parsed_addr);
+    }
+
+    // 2. Créer l'e-mail Multipart (Texte + Fichier ICS)
+    // Le Content-Type text/calendar; method=REQUEST permet aux clients mail (Outlook/Gmail)
+    // d'afficher directement les boutons "Accepter" ou "Refuser".
+    let email = builder.multipart(
+        MultiPart::mixed()
+            .singlepart(
+                SinglePart::plain(body.to_string())
+            )
+            .singlepart(
+                Attachment::new(String::from("invite.ics"))
+                    .body(
+                        ics_content.to_string(), 
+                        "text/calendar; method=REQUEST".parse().unwrap()
+                    )
+            )
+    ).map_err(|e| format!("Erreur de construction de l'email: {}", e))?;
+
+    // 3. Envoi via msmtp
+
+        // 5. Exécution de msmtp
+        let mut cmd = Command::new("msmtp");
+        cmd.arg("-t"); // Demande à msmtp d'extraire les destinataires (To, Cc, Bcc) des headers MIME
+
+
+        let mut child = cmd
+            .stdin(Stdio::piped())
+            .stdout(Stdio::piped())
+            .stderr(Stdio::piped())
+            .spawn()
+            .map_err(|e| format!("Impossible de lancer msmtp: {}", e))?;
+
+                    let email_bytes = email.formatted();
+
+        // Écriture du mail généré dans l'entrée standard de msmtp
+        if let Some(mut stdin) = child.stdin.take() {
+            stdin
+                .write_all(&email_bytes)
+                .map_err(|e| format!("Erreur d'écriture dans stdin: {}", e))?;
+        }
+
+        // Attente du résultat
+        let output = child
+            .wait_with_output()
+            .map_err(|e| format!("Erreur d'attente de msmtp: {}", e))?;
+
+        if !output.status.success() {
+            let stderr = String::from_utf8_lossy(&output.stderr);
+            return Err(format!("Erreur msmtp (code {}): {}", output.status, stderr));
+        }
+
+        // 3. Sauvegarde dans Notmuch
+        // On récupère le contenu brut de l'e-mail sous forme de Vec<u8> (les octets exacts envoyés)
+        let raw_email_bytes = email.formatted();
+
+        println!("Sauvegarde dans Notmuch...");
+        MSMTPWrapper::save_to_notmuch(&raw_email_bytes, sentfolder.to_string())?;
+        println!("Sauvegarde réussie !");
+
+
+
+    Ok(())
+}
 
     /// Fonction utilitaire pour injecter l'e-mail brut dans Notmuch
     fn save_to_notmuch(raw_email: &[u8], folder: String) -> Result<(), String> {
