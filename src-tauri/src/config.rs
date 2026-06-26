@@ -12,6 +12,13 @@ pub struct AccountConfig {
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
+pub struct ShortcuConfig {
+    pub shortcut: String,
+    pub text: String
+}
+
+
+#[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct AppConfig {
     pub root_mail_dir: Option<String>,
     pub default_path: Option<String>,
@@ -22,6 +29,7 @@ pub struct AppConfig {
     pub lthostport: Option<String>,
     pub calendaremail: Option<String>,
     pub llm: Option<LlmConfig>,
+    pub shortcuts: Option<Vec<ShortcuConfig>>
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
@@ -43,6 +51,7 @@ impl Default for AppConfig {
             lthostport: None,
             calendaremail: Some("barais@irisa.fr".to_string()),
             llm: None,
+            shortcuts:None
         }
     }
 }

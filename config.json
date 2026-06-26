@@ -16,8 +16,12 @@
     }
   ],
   "default_sent_folder": "Sent",
-  "rmtmmail":"olivier.barais+5ba373@rmilk.com",
-  "lthostport":"http://localhost:8081",
-  "calendaremail": "barais@irisa.fr"
-
+  "rmtmmail": "olivier.barais+5ba373@rmilk.com",
+  "lthostport": "http://localhost:8081",
+  "calendaremail": "barais@irisa.fr",
+  "llm": {
+    "api_url": "https://ragarenn.eskemm-numerique.fr/sso/ch@t/api/chat/completions",
+    "api_key": "sk-66a096b9b2a9403b8f57d7f4f579681e",
+    "model": "ilaas/gemma-4-31b"
+  }
 }

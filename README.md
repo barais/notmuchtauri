@@ -39,7 +39,7 @@ To achieve this, NotmuchTauri acts as a modern GUI coordinator for the best CLI 
 - [x] [Remember The Milk](https://www.rememberthemilk.com/) task creation from email
 - [x] Email spell check with language detection
 - [ ] Customizable keyboard shortcuts
-- [ ] Customizable text snippets (useful for greetings)
+- [ ] Customizable text snippets (useful for greetings) or AI
 - [ ] Outbox folder management (send emails when network is back up)
 - [ ] Save emails as drafts
 - [ ] IMAP IDLE support for instant push notifications

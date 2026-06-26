@@ -30,6 +30,11 @@ export interface LlmConfig {
   model: string;
 }
 
+export interface ShortcuConfig {
+   shortcut: string,
+   text: string
+}
+
 export interface AppConfig {
   root_mail_dir: string;
   default_path: string;
@@ -39,8 +44,8 @@ export interface AppConfig {
   rmtmmail?: string
   lthostport?: string
   calendaremail:string
-  llm: LlmConfig | null;
-  
+  llm: LlmConfig | null;  
+  shortcuts: ShortcuConfig[];
 }
 
 export interface Thread {
@@ -74,6 +79,10 @@ export interface AttachmentDto {
   contentId: string | null;
 }
 
+export interface ThreadDto {
+  roots: MessageDto[];
+}
+
 export interface MessageDto {
   id: string;
   subject: string;
@@ -97,9 +106,6 @@ export interface AddressMatch {
 }
 
 
-export interface ThreadDto {
-  roots: MessageDto[];
-}
 
 export interface AttachmentPayload {
   path: string;

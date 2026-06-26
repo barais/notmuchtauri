@@ -186,7 +186,7 @@
               </button>
 
               <!-- Transformer en tâche (Icône Check-list) -->
-              <button @click="convertToTask(message)"
+              <button v-if="config().rmtmmail && config().rmtmmail !==''" @click="convertToTask(message)"
                 class="flex items-center gap-1 px-3 py-1.5 text-xs font-medium text-gray-600 bg-white hover:bg-gray-100 dark:text-zinc-400 dark:bg-zinc-800 dark:hover:bg-zinc-700 rounded-md transition-colors border border-gray-300 dark:border-zinc-700">
                 <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
@@ -195,7 +195,7 @@
               </button>
 
               <!-- Transformer en RDV (Icône Calendrier) -->
-              <button @click="convertToEvent(message)"
+              <button v-if="config().calendaremail && config().calendaremail !==''" @click="convertToEvent(message)"
                 class="flex items-center gap-1 px-3 py-1.5 text-xs font-medium text-gray-600 bg-white hover:bg-gray-100 dark:text-zinc-400 dark:bg-zinc-800 dark:hover:bg-zinc-700 rounded-md transition-colors border border-gray-300 dark:border-zinc-700">
                 <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
@@ -253,6 +253,7 @@
       <MessageNode v-for="reply in message.replies" :key="reply.id" :message="reply" :depth="depth + 1"
         :initially-expanded="false" />
     </div>
+
   </div>
   <!-- Modale de création de Tag (Téléportée à la racine de l'application) -->
   <Teleport to="body">
@@ -304,7 +305,7 @@
 
 <script setup lang="ts">
 import { ref, computed, PropType, onMounted, watch, nextTick, inject } from 'vue'
-import type { AttachmentDto, MessageDto } from '../types' // Ajustez le chemin
+import type { AttachmentDto, MessageDto,AppConfig } from '../types' // Ajustez le chemin
 import { invoke } from '@tauri-apps/api/core'
 import { save } from '@tauri-apps/plugin-dialog' // ou '@tauri-apps/api/dialog' (v1)
 import RtmTaskModal from './RtmTaskModal.vue'
@@ -330,6 +331,10 @@ const props = defineProps({
 const replyFunction: (message: MessageDto, subject: string,
   replyMode: 'reply' | 'reply-all' | 'forward' | 'new' | 'editasnew' | 'none'
 ) => void = inject(/* key */ 'replyFunction')!
+
+const config:  ()=>AppConfig = inject(/* key */ 'appConfig')!
+
+
 
 /**
  * Ouvre l'éditeur en reprenant le contenu exact du message
@@ -654,6 +659,7 @@ const convertToTask = (message: MessageDto) => {
 }
 
 const onTaskCreated = () => {
+  
   console.log("Tâche RTM créée avec succès !")
   // Optionnel : afficher une notification toast ici
 }

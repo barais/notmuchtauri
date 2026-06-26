@@ -57,7 +57,7 @@
             </li>
           </ul>
         </div>
-
+        
       </div>
 
       <!-- Cc -->
@@ -126,7 +126,19 @@
         <input v-model="form.subject" type="text"
           class="flex-1 font-semibold bg-transparent border-none focus:ring-0 text-gray-800 p-1" />
 
-        <div class="flex items-center space-x-3 ml-2">
+        <div v-if="editor && !props.isHtml && config?.lthostport && config?.lthostport !==''" class="flex items-center space-x-3 ml-2">
+
+                                <select v-model="spellLanguage" class="text-xs border border-gray-300 rounded p-1">
+              <option value="fr">Français</option>
+              <option value="en-US">English</option>
+            </select>
+
+            <button v-if="editor && !props.isHtml && config?.lthostport && config?.lthostport !==''" @click="checkSpelling" :disabled="isCheckingSpelling || !props.config?.lthostport"
+              class="px-3 py-1.5 text-sm bg-blue-50 text-blue-700 hover:bg-blue-100 rounded-md transition-colors">
+              {{ isCheckingSpelling ? 'Vérification...' : "Vérifier l'orthographe" }}
+            </button>
+
+
           <button @click="showBcc = !showBcc" class="text-xs text-gray-500 hover:text-blue-600 transition-colors">
             {{ showBcc ? 'Cacher Cci' : 'Ajouter Cci' }}
           </button>
@@ -168,6 +180,7 @@
     <!-- Zone de texte (Body) -->
     <!-- Zone de texte (Body) -->
     <div class="flex-1 relative bg-white flex flex-col min-h-0">
+
 
 
       <!-- Conteneur principal -->
@@ -215,6 +228,7 @@
             </button>
 
           </div>
+          
 
           <!-- ZONE DE TEXTE ET CALQUES (RELATIVE) -->
           <!-- ref="editorAreaRef" est appliqué ici pour calculer les coordonnées justes sous la toolbar -->
@@ -240,7 +254,9 @@
         </div>
 
         <!-- INSÉRER ICI VOTRE COMPOSANT AI Copilot -->
-        <AiCopilot @insert-text="handleAiInsertion" :email-context="form.body" />
+        <AiCopilot v-if="config?.llm && config?.llm.api_key && config?.llm.api_url && config?.llm.model" 
+        layout="vertical" 
+        @insert-text="handleAiInsertion" :email-context="form.body"  />
 
       </div>
 
@@ -954,7 +970,7 @@ onUnmounted(() => {
 }
 
 :deep(.ProseMirror h3) {
-  font-size: medium;
+  font-size: 100%;
 }
 
 
