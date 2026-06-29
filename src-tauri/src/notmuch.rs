@@ -4,7 +4,7 @@ use serde_json::Value;
 use std::error::Error;
 use std::fs;
 use std::process::{Command, Stdio};
-use tokio::io::{AsyncBufReadExt};
+use tokio::io::AsyncBufReadExt;
 // --- RAW NOTMUCH MODELS ---
 #[derive(Serialize, Deserialize)]
 pub struct AddressMatch {
@@ -122,8 +122,6 @@ pub struct MessagElement {
     pub tags: Vec<String>,
 }
 
-
-
 pub type Messag = Vec<MessagElement>;
 
 /// Clean representation for the Frontend as defined in docs/arch/data-model.md.
@@ -152,20 +150,18 @@ pub struct ReplyData {
 
 #[derive(Debug, Serialize)]
 #[serde(rename_all = "camelCase")]
-  pub struct SearchResult {
-      pub messages: Vec<Message>,
-      pub total: usize,
-  }
+pub struct SearchResult {
+    pub messages: Vec<Message>,
+    pub total: usize,
+}
 
-
-  #[derive(Debug, Serialize)]
+#[derive(Debug, Serialize)]
 #[serde(rename_all = "camelCase")]
-  pub struct SearchResultMessagInternal {
-      pub messages: Vec<MessagElement>,
-      pub total: usize,
-  }
+pub struct SearchResultMessagInternal {
+    pub messages: Vec<MessagElement>,
+    pub total: usize,
+}
 
-  
 pub struct NotMuchWrapper;
 
 impl NotMuchWrapper {
@@ -173,34 +169,30 @@ impl NotMuchWrapper {
         Command::new("notmuch").arg("--version").output().is_ok()
     }
 
-     /// Returns the total number of messages matching a query using `notmuch count`
-      pub fn count_messages(query: &str) -> Result<usize, Box<dyn Error>> {
-          let output = Command::new("notmuch")
-              .arg("count")
-              .arg(query)
-              .output()?;
+    /// Returns the total number of messages matching a query using `notmuch count`
+    pub fn count_messages(query: &str) -> Result<usize, Box<dyn Error>> {
+        let output = Command::new("notmuch").arg("count").arg(query).output()?;
 
-          if !output.status.success() {
-              return Err("notmuch count failed".into());
-          }
+        if !output.status.success() {
+            return Err("notmuch count failed".into());
+        }
 
-          let stdout = String::from_utf8_lossy(&output.stdout).trim().to_string();
+        let stdout = String::from_utf8_lossy(&output.stdout).trim().to_string();
 
-          // notmuch count returns a simple number as a string
-          let count = stdout.parse::<usize>()
-              .map_err(|_| "Failed to parse count result as number")?;
+        // notmuch count returns a simple number as a string
+        let count = stdout
+            .parse::<usize>()
+            .map_err(|_| "Failed to parse count result as number")?;
 
-          Ok(count)
-      }
-
+        Ok(count)
+    }
 
     pub fn search(
         query: &str,
         limit: Option<u32>,
         sort: Option<&str>,
-        offset:Option<i32>
+        offset: Option<i32>,
     ) -> Result<SearchResultMessagInternal, Box<dyn Error>> {
-
         let total = Self::count_messages(query)?;
         let mut cmd = Command::new("notmuch");
         cmd.arg("search").arg("--format=json");
@@ -213,15 +205,13 @@ impl NotMuchWrapper {
             cmd.arg("--sort").arg(s);
         }
         if let Some(offset1) = offset {
-            if offset1>0 { 
+            if offset1 > 0 {
                 cmd.arg("--offset").arg(offset1.to_string());
             }
         }
 
-        
-
         cmd.arg(query);
-//        println!("Executing command: {:?}", query);
+        //        println!("Executing command: {:?}", query);
 
         let output: std::process::Output = cmd.output()?;
 
@@ -231,26 +221,33 @@ impl NotMuchWrapper {
         }
 
         let stdout = String::from_utf8_lossy(&output.stdout);
-         if stdout.trim().is_empty() {
-            return Ok(SearchResultMessagInternal { messages: vec![], total: 0 });
+        if stdout.trim().is_empty() {
+            return Ok(SearchResultMessagInternal {
+                messages: vec![],
+                total: 0,
+            });
         }
 
         let messages: Messag = serde_json::from_str(&stdout)?;
-         let total = total;
-        return Ok(SearchResultMessagInternal { messages: messages, total: total });
-
+        let total = total;
+        return Ok(SearchResultMessagInternal {
+            messages: messages,
+            total: total,
+        });
     }
 
-    pub fn get_thread_details(thread_id: &str) -> Result<Vec<ThreadDto>, Box<dyn Error>> {
+    pub fn get_thread_details(thread_id: &str, showexcluded:bool) -> Result<Vec<ThreadDto>, Box<dyn Error>> {
         let mut cmd = Command::new("notmuch");
 
-        cmd.arg("show")
-            .arg("--format=json")
-            .arg("--sort=newest-first")
+        cmd.arg("show").arg("--format=json");
+        if showexcluded {
+            cmd.arg("--exclude=false");
+        }    
+        cmd.arg("--sort=newest-first")
             .arg("--include-html")
             .arg(format!("thread:{}", thread_id));
 
-        let output = cmd.output();
+        let output: Result<std::process::Output, std::io::Error> = cmd.output();
         if output.is_err() {
             return Err("notmuch show failed to fetch thread".into());
         }
@@ -309,8 +306,30 @@ impl NotMuchWrapper {
         }
     }
 
-    pub fn modify_message_tag(message_id: &str, tag: &str, action: &str) -> Result<(), String> {
+    pub fn modify_thread_tag(thread_ids: Vec<&str>, tag: &str, action: &str) -> Result<(), String> {
+        // action doit être "add" ou "remove"
+        let prefix = match action {
+            "add" => "+",
+            "remove" => "-",
+            _ => return Err("Action invalide, utilisez 'add' ou 'remove'".to_string()),
+        };
 
+        let tag_arg = format!("{}{}", prefix, tag);
+        let id_arg = format!("{}", thread_ids.join(" "));
+        let output = Command::new("notmuch")
+            .args(["tag", &tag_arg, "--", &id_arg])
+            .output()
+            .map_err(|e| format!("Erreur d'exécution notmuch: {}", e))?;
+
+        if output.status.success() {
+            Ok(())
+        } else {
+            let err = String::from_utf8_lossy(&output.stderr).into_owned();
+            Err(format!("Erreur notmuch: {}", err))
+        }
+    }
+
+    pub fn modify_message_tag(message_id: &str, tag: &str, action: &str) -> Result<(), String> {
         // action doit être "add" ou "remove"
         let prefix = match action {
             "add" => "+",
@@ -448,55 +467,10 @@ impl NotMuchWrapper {
         Ok(matches)
     }
 
-    /// Performs a lookup with a hard limit on the number of processed lines
-   /* pub fn lookup_address_limited(
+    pub async fn lookup_address_limited(
         query: &str,
         line_limit: usize,
     ) -> Result<Vec<AddressMatch>, Box<dyn Error>> {
-        // 1. Spawn the process and pipe stdout
-        let mut child = Command::new("notmuch-addrlookup")
-            .arg(query)
-            .stdout(Stdio::piped()) // Capture stdout via pipe
-            .spawn()?;
-
-        // 2. Create a buffered reader from the stdout handle
-        let stdout_handle = child.stdout.take().ok_or("Failed to open stdout")?;
-        let reader = BufReader::new(stdout_handle);
-
-        let mut matches = Vec::new();
-        let mut lines_processed = 0;
-
-        // 3. Iterate through lines until we hit the limit or the stream ends
-        for line_result in reader.lines() {
-            if lines_processed >= line_limit {
-                break; // Stop reading after n lines
-            }
-
-            let line = line_result?;
-            if line.trim().is_empty() {
-                continue;
-            }
-
-            // Parse the line into AddressMatch
-            if let Some(addr) = Self::parse_addr_line(&line) {
-                matches.push(addr);
-            }
-
-            lines_processed += 1;
-        }
-
-        // 4. Kill the child process to prevent it from continuing to run in background
-        // since we stopped reading the pipe, the process might hang or continue.
-        let _ = child.kill();
-
-        Ok(matches)
-    }*/
-
- pub async fn lookup_address_limited(
-        query: &str,
-        line_limit: usize,
-    ) -> Result<Vec<AddressMatch>, Box<dyn Error>> {
-        
         // 1. Spawn the process asynchronously and pipe stdout
         let mut child = tokio::process::Command::new("notmuch-addrlookup")
             .arg(query)
@@ -577,7 +551,11 @@ pub fn prepare_reply_body(original_message: &Message) -> String {
             {}
             </blockquote>
             "#,
-        from_display.trim(), to_display.trim(), date_display.trim(), subject_display.trim(), body_content.trim()
+        from_display.trim(),
+        to_display.trim(),
+        date_display.trim(),
+        subject_display.trim(),
+        body_content.trim()
     )
 }
 

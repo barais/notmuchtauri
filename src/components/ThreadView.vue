@@ -93,7 +93,6 @@ ${bodyText}
     }
   }
 
-  console.error(output.join('\n\n'))
 
   // Concatène tous les messages séparés par 2 sauts de ligne
   return output.join('\n\n');

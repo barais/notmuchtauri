@@ -216,37 +216,8 @@
 <script setup lang="ts">
 import { ref, PropType } from 'vue';
 import { invoke } from '@tauri-apps/api/core'; // Ou '@tauri-apps/api/tauri' selon la v1 ou v2
+import { AppConfig } from '../types';
 
-export interface AccountConfig{
-  id:string,
-  label: string,
-  email: string,
-  sent_folder?:string
-}
-
-export interface LlmConfig {
-  api_url: string;
-  api_key: string;
-  model: string;
-}
-
-export interface ShortcuConfig {
-   shortcut: string,
-   text: string
-}
-
-export interface AppConfig {
-  root_mail_dir: string;
-  default_path: string;
-  limit:number,
-  accounts: AccountConfig[]
-  default_sent_folder:string,
-  rmtmmail?: string
-  lthostport?: string
-  calendaremail:string
-  llm: LlmConfig | null;  
-  shortcuts: ShortcuConfig[];
-}
 
 const props = defineProps({
   config: {
@@ -321,7 +292,8 @@ const addAccount = () => {
     id: crypto.randomUUID(), 
     label: '',
     email: '',
-    sent_folder: undefined
+    sent_folder: undefined,
+    is_default:false
   });
 };
 

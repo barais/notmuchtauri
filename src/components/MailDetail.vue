@@ -5,7 +5,9 @@ import type { ThreadDto } from '../types'
 import ThreadView from './ThreadView.vue';
 
 const props = defineProps<{
-  messageId: string
+  messageId: string,
+  exclude:boolean
+
 }>()
 
   const read = defineEmits(['mark-as-read']);
@@ -20,7 +22,7 @@ async function fetchDetails() {
   loading.value = true
   error.value = null
   try {
-    const details = await invoke<ThreadDto[]>('get_message_details', { id: props.messageId })
+    const details = await invoke<ThreadDto[]>('get_message_details', { id: props.messageId, exclude:props.exclude })
     message.value = details
   } catch (e) {
     error.value = e instanceof Error ? e.message : String(e)
@@ -40,7 +42,6 @@ onMounted(async () => {
       tag: 'unread', 
       action: 'remove' 
     })
-    console.error(`Tag 'unread' removed for message ID: ${props.messageId}`);
     read('mark-as-read', props.messageId) 
   } catch (error) {
     console.error(`Erreur lors du retrait du tag remove:`, error)

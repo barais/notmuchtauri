@@ -475,6 +475,12 @@ const init = async () => {
   if (editor.value?.view.dom) {
     editor.value.view.dom.addEventListener('scroll', updateOverlays)
   }
+  if (props.config){
+
+    const defaultAccount = props.config.accounts.find(a => a.is_default);
+    form.account = defaultAccount ? defaultAccount.id : '';
+  }
+
   if (props.replyMode == 'editasnew') {
     isLoading.value = true
 

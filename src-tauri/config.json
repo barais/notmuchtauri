@@ -7,13 +7,22 @@
       "id": "irisa",
       "label": "Compte IRISA",
       "email": "barais@irisa.fr",
-      "sent_folder": "IRISA/Sent"
+      "sent_folder": "IRISA/Sent",
+      "is_default": true
     },
     {
       "id": "rennes1",
-      "label": "Compte Univ Rennes ",
-      "email": "olivier.barais@univ-rennes.fr",
-      "sent_folder": null
+      "label": "rennes1",
+      "email": "olivier.barais@univ-rennes1.fr",
+      "sent_folder": "Sent",
+      "is_default": false
+    },
+    {
+      "id": "gmailmotorprotect",
+      "label": "gmailmotorprotect",
+      "email": "olivier@motorprotect.fr",
+      "sent_folder": "Sent",
+      "is_default": false
     }
   ],
   "default_sent_folder": "Sent",

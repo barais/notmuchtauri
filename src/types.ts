@@ -21,7 +21,8 @@ export interface AccountConfig{
   id:string,
   label: string,
   email: string,
-  sent_folder?:string
+  sent_folder?:string,
+  is_default:boolean
 }
 
 export interface LlmConfig {

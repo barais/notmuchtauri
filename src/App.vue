@@ -6,6 +6,8 @@ import MailDetail from "./components/MailDetail.vue";
 import FolderTree from "./components/FolderTree.vue";
 import ComposeView from './components/ComposeView.vue';
 import SettingsModal from './components/SettingsModal.vue'
+import { listen, UnlistenFn } from "@tauri-apps/api/event"; 
+
 
 const searchQuery = ref("");
 const messages = ref<Message[]>([]);
@@ -131,7 +133,6 @@ function getRelativePath(absolutePath: string) {
 }
 
 async function searchResetPage(sort: string = "newest-first", customQuery: string = "",page: number = 1) {
-  console.error("foo")
   currentPage.value=1
   search(sort,customQuery, page);
 
@@ -141,7 +142,6 @@ async function search(sort: string = "newest-first", customQuery: string = "",pa
   isLoading.value = true;
   error.value = null;
   const limit = config.value?.limit? config.value?.limit:1000;
-  console.error('pageSize', pageSize)
   let finalQuery = customQuery || searchQuery.value || "";
 
   if (currentPath.value) {
@@ -190,17 +190,23 @@ function onFolderSelected(path: string) {
   search();
 }
 
-onMounted(() => {
-  initApp();
+let unlistenMailSync: UnlistenFn | null = null;
+
+onMounted(async () => {
+  await initApp();
+  document.addEventListener('click', closeContextMenu);
+
+   // 2. Écoute l'événement émis par Rust
+  unlistenMailSync = await listen("mail-synced", () => {
+    console.log("📨 Événement mail-synced reçu depuis Rust ! Lancement de la recherche...");
+    
+    // On appelle simplement la fonction search existante !
+    // Elle va récupérer les nouveaux mails et réinitialiser le timer automatique.
+    search();
+  });
 });
 
-/*function removetag(messageId: string) {
-  messages.value.forEach((msg) => {
-    if (msg.id === messageId) {
-      msg.tags = msg.tags.filter(tag => tag.toLowerCase() !== 'unread');
-    }
-  });
-}*/
+
 
 interface Tab {
   id: string;
@@ -359,8 +365,14 @@ const closeContextMenu = () => {
 }
 
 // Écouteur global pour fermer le menu quand on clique ailleurs
-onMounted(() => document.addEventListener('click', closeContextMenu))
-onUnmounted(() => document.removeEventListener('click', closeContextMenu))
+onUnmounted(() => {
+  document.removeEventListener('click', closeContextMenu);
+  if (unlistenMailSync) {
+    unlistenMailSync();
+  }  
+})
+
+
 
 // --- Actions de fermeture par lot ---
 
@@ -413,6 +425,18 @@ function resetAutoSearchTimer() {
 onUnmounted(() => {
   if (autoSearchTimer) clearTimeout(autoSearchTimer);
 });
+
+const deleteThread = async ()=> {
+  
+      await invoke('modify_thread_tag', {
+      threadIds: [...selectedIds.value],
+      tag: "deleted",
+      action: 'add'
+    })
+    search();
+    selectedIds.value.clear()
+
+}
 
 </script>
 
@@ -532,6 +556,7 @@ onUnmounted(() => {
           <!-- Delete -->
           <button 
             title="Supprimer"
+            @click="deleteThread"
             class="flex items-center gap-1 p-1.5 text-red-600 bg-red-50 dark:bg-red-900/20 hover:bg-red-100 dark:hover:bg-red-900/40 rounded transition-colors"
           >
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -646,11 +671,6 @@ onUnmounted(() => {
       <!-- Content Area -->
       <div class="flex-1 overflow-hidden">
         <template v-if="openTabs.length > 0">
-          <!-- 
-            MODIFICATION CRUCIALE : on itère sur TOUS les onglets, 
-            et on utilise v-show pour cacher ceux qui sont inactifs.
-            Les composants ne sont plus détruits !
-          -->
           <div 
             v-for="tab in openTabs" 
             :key="tab.id" 
@@ -661,6 +681,7 @@ onUnmounted(() => {
             <MailDetail 
               v-if="tab.type === 'VIEW'" 
               :message-id="tab.threadId!" 
+              :exclude="searchQuery.includes('tag:deleted') || searchQuery.includes('tag:spam')"
             />
             <ComposeView 
               v-else 

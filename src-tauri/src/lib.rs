@@ -6,12 +6,13 @@ mod folder_scan;
 mod llm;
 mod msmtp;
 mod notmuch;
+mod idle;
 use config::{AppConfig, ConfigManager};
 use folder_scan::{FolderNode, FolderScanner};
 use msmtp::{EmailPayload, MSMTPWrapper};
 use notmuch::{AddressMatch, Message, NotMuchWrapper, ReplyData};
+use crate::{idle::start_imap_idle_daemons, llm::LLMWrapper, notmuch::{SearchResult, ThreadDto}};
 
-use crate::{llm::LLMWrapper, notmuch::{SearchResult, ThreadDto}};
 
 #[tauri::command]
 fn get_config() -> Result<AppConfig, String> {
@@ -59,8 +60,8 @@ fn search_messages(
 }
 
 #[tauri::command]
-fn get_message_details(id: String) -> Result<Vec<ThreadDto>, String> {
-    NotMuchWrapper::get_thread_details(&id).map_err(|e| e.to_string())
+fn get_message_details(id: String,exclude:bool) -> Result<Vec<ThreadDto>, String> {
+    NotMuchWrapper::get_thread_details(&id,exclude).map_err(|e| e.to_string())
 }
 
 #[tauri::command]
@@ -76,6 +77,10 @@ fn save_message_part(message_id: &str, part_id: u32, output_path: &str) -> Resul
 #[tauri::command]
 fn modify_message_tag(message_id: &str, tag: &str, action: &str) -> Result<(), String> {
     NotMuchWrapper::modify_message_tag(&message_id, &tag, &action).map_err(|e| e.to_string())
+}
+#[tauri::command]
+fn modify_thread_tag(thread_ids: Vec<&str>, tag: &str, action: &str) -> Result<(), String> {
+    NotMuchWrapper::modify_thread_tag(thread_ids, &tag, &action).map_err(|e| e.to_string())
 }
 
 #[tauri::command]
@@ -149,6 +154,8 @@ pub fn run() {
             tauri::async_runtime::spawn(async {
                 MSMTPWrapper::process_outbox_daemon().await;
             });
+             let app_handle = _app.handle().clone();
+            start_imap_idle_daemons(app_handle);
 
             Ok(())
         })
@@ -162,6 +169,7 @@ pub fn run() {
             get_message_part,
             save_message_part,
             modify_message_tag,
+            modify_thread_tag,
             send_email,
             get_reply_data,
             lookup_address,
