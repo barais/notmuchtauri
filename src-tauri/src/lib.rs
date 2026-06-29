@@ -142,6 +142,14 @@ pub fn run() {
         .plugin(tauri_plugin_single_instance::init(|app, args, cwd| {}))
         .plugin(tauri_plugin_dialog::init())
         .plugin(tauri_plugin_opener::init())
+        .setup(|_app| {
+            // Lance la tâche de fond (Daemon) Outbox de façon non bloquante
+            tauri::async_runtime::spawn(async {
+                MSMTPWrapper::process_outbox_daemon().await;
+            });
+
+            Ok(())
+        })
         .invoke_handler(tauri::generate_handler![
             greet,
             search_messages,
