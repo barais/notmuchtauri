@@ -247,6 +247,7 @@ impl NotMuchWrapper {
             .arg("--include-html")
             .arg(format!("thread:{}", thread_id));
 
+        println!("Executing command: {:?}", thread_id);
         let output: Result<std::process::Output, std::io::Error> = cmd.output();
         if output.is_err() {
             return Err("notmuch show failed to fetch thread".into());

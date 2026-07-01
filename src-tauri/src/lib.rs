@@ -8,11 +8,11 @@ mod msmtp;
 mod notmuch;
 mod idle;
 use config::{AppConfig, ConfigManager};
-use folder_scan::{FolderNode, FolderScanner};
+use folder_scan::{FolderNode,FolderScanner};
 use msmtp::{EmailPayload, MSMTPWrapper};
 use notmuch::{AddressMatch, Message, NotMuchWrapper, ReplyData};
 use crate::{idle::start_imap_idle_daemons, llm::LLMWrapper, notmuch::{SearchResult, ThreadDto}};
-
+use std::path::Path;
 
 #[tauri::command]
 fn get_config() -> Result<AppConfig, String> {
@@ -24,11 +24,55 @@ fn save_config(config: AppConfig) -> Result<(), String> {
     ConfigManager::save(&config).map_err(|e| e.to_string())
 }
 
+/// Fonction principale pour scanner un ou plusieurs chemins racines
 #[tauri::command]
-fn scan_mail_folders(root_path: String) -> Result<Vec<FolderNode>, String> {
-    let path = std::path::Path::new(&root_path);
-    FolderScanner::scan(path).map_err(|e| e.to_string())
+ fn scan_mail_folders(notmuchroot: &str, rootpaths: Vec<&str>) -> Result<Vec<FolderNode>, String> {
+    let mut roots = Vec::new();
+
+    for root_path in rootpaths {
+        let path = Path::new(root_path);
+        let mut root1= FolderNode {
+            name: root_path.to_string().replace(notmuchroot, "").replace("/", ""),
+            path: root_path.to_string(),
+            is_maildir: false,
+            children: Vec::new(),
+        };
+
+        // On ignore les chemins invalides ou qui ne sont pas des dossiers
+        if !path.exists() || !path.is_dir() {
+            eprintln!("Dossier ignoré (introuvable) : {}", root_path);
+            continue;
+        }
+
+        // On extrait le nom du dossier racine (ex: "IRISA" pour "/home/user/mail/IRISA")
+        let name = path.file_name()
+            .map(|n| n.to_string_lossy().to_string())
+            .unwrap_or_else(|| root_path.to_string());
+
+        // On lance le parcours récursif
+        let children = FolderScanner::scan(path);
+        if children.is_err() {
+            eprintln!("Erreur lors du scan de {}: {}", root_path, children.unwrap_err());
+            continue;
+        } else {
+    
+            let children = children.unwrap();
+            if children.is_empty() {
+                eprintln!("Aucun sous-dossier trouvé dans {}", root_path);
+            } else  {
+                for child in children.iter() {
+                    root1.children.push(child.clone());
+
+                }
+            }
+        }
+                roots.push(root1);
+
+    }
+
+    Ok(roots)
 }
+
 
 #[tauri::command]
 fn search_messages(

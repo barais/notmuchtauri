@@ -17,7 +17,8 @@ const error = ref<string | null>(null);
 const currentPath = ref<string | null>(null);
 
 // Configuration & Folder state
-const rootPath = ref("");
+const rootPath = ref(['']);
+const mailPath= ref('');
 const folderTree = ref<FolderNode[]>([]);
 const isScanning = ref(false);
 
@@ -92,13 +93,15 @@ async function initApp() {
     // 1. Load configuration
     const config1 = await invoke<AppConfig>('get_config');
     config.value = config1;
-    rootPath.value = config.value.root_mail_dir;
+    rootPath.value = [...config.value.maildir_stores!.map(acc => acc.path)];
+    mailPath.value = config.value.root_mail_dir?config.value.root_mail_dir:'';
+
     pageSize.value = config1.limit
 
     // 2. Initial scan if root path exists
     if (rootPath.value) {
       await scanFolders(rootPath.value);
-      currentPath.value = config.value.default_path;
+      currentPath.value = config.value.maildir_stores![0].inbox ;
       await search();
 
     }
@@ -107,10 +110,10 @@ async function initApp() {
   }
 }
 
-async function scanFolders(path: string) {
+async function scanFolders(path: string[]) {
   isScanning.value = true;
   try {
-    folderTree.value = await invoke<FolderNode[]>('scan_mail_folders', { rootPath: path });
+    folderTree.value = await invoke<FolderNode[]>('scan_mail_folders', { notmuchroot: mailPath.value, rootpaths: [...path] });
   } catch (e) {
     error.value = "Failed to scan folders: " + e;
   } finally {
@@ -122,7 +125,7 @@ function getRelativePath(absolutePath: string) {
   if (!rootPath.value) return absolutePath;
 
   // Remove the root path from the absolute path
-  let relative = absolutePath.replace(rootPath.value, "");
+  let relative = absolutePath.replace(mailPath.value, "");
 
   // Remove leading slash if present
   if (relative.startsWith("/")) {
@@ -469,30 +472,6 @@ const markAsRead = (messageId:string)=>{
 
       <!-- Folder Tree Section (NOW AT THE BOTTOM) -->
       <div class="flex-1 overflow-hidden flex flex-col">
-        <div class="bg-gray-50 dark:bg-zinc-900 border-b border-gray-200 dark:border-zinc-800">
-          <!-- Header Cliquable -->
-          <button @click="isMailRootExpanded = !isMailRootExpanded"
-            class="w-full flex items-center justify-between p-3 focus:outline-none hover:bg-gray-100 dark:hover:bg-zinc-800 transition-colors">
-            <span class="text-xs font-semibold text-gray-500 uppercase">Mail Root</span>
-            <!-- Icône chevron animée -->
-            <svg class="w-4 h-4 text-gray-500 transform transition-transform duration-200"
-              :class="isMailRootExpanded ? 'rotate-180' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
-            </svg>
-          </button>
-
-          <!-- Contenu collapsable -->
-          <div v-if="isMailRootExpanded" class="px-3 pb-3">
-            <div class="flex gap-2">
-              <input v-model="rootPath" placeholder="/home/user/mail"
-                class="w-full px-2 py-1 text-xs border rounded bg-white dark:bg-zinc-800 border-gray-300 dark:border-zinc-700 outline-none focus:ring-1 focus:ring-blue-500" />
-              <button @click="scanFolders(rootPath)"
-                class="px-2 py-1 bg-gray-200 dark:bg-zinc-700 text-xs rounded hover:bg-gray-300 dark:hover:bg-zinc-600 transition-colors">
-                Scan
-              </button>
-            </div>
-          </div>
-        </div>
         <!-- <ComposeEmailModal/>-->
 
         <div class="flex gap-2">

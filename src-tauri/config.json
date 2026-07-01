@@ -1,6 +1,4 @@
 {
-  "root_mail_dir": "/home/barais/mail",
-  "default_path": "/home/barais/mail/IRISA/INBOX",
   "limit": 200,
   "accounts": [
     {

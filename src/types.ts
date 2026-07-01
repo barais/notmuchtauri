@@ -24,6 +24,11 @@ export interface AccountConfig{
   sent_folder?:string,
   is_default:boolean
 }
+export interface MaildirStoreConfig {
+     name: string,
+     path: string,
+    inbox: string,
+}
 
 export interface LlmConfig {
   api_url: string;
@@ -37,8 +42,14 @@ export interface ShortcuConfig {
 }
 
 export interface AppConfig {
+  
+  notmuch_config_path?:string,
+  mbsyncrc_path?: string,
+  msmtprc_path?: string,
+  maildir_stores?: MaildirStoreConfig[],
+
   root_mail_dir: string;
-  default_path: string;
+//  default_path: string;
   limit:number,
   accounts: AccountConfig[]
   default_sent_folder:string,

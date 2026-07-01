@@ -39,13 +39,13 @@
             <section>
               <h3 class="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-4 border-b pb-2 dark:border-zinc-800">Paramètres Généraux</h3>
               <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <label class="block text-sm font-medium text-gray-700 dark:text-zinc-300 mb-1">Dossier Mail Racine</label>
-                  <input v-model="localConfig.root_mail_dir" type="text" placeholder="/home/user/mail" class="form-input" />
+               <div>
+                  <label class="block text-sm font-medium text-gray-700 dark:text-zinc-300 mb-1">Fichier de configuration mbsync</label>
+                  <input v-model="localConfig.mbsyncrc_path" type="text" placeholder="~/.mbsyncrc" class="form-input" />
                 </div>
                 <div>
-                  <label class="block text-sm font-medium text-gray-700 dark:text-zinc-300 mb-1">Chemin par défaut</label>
-                  <input v-model="localConfig.default_path" type="text" placeholder="/home/user/mail/INBOX" class="form-input" />
+                  <label class="block text-sm font-medium text-gray-700 dark:text-zinc-300 mb-1">Fichier de configuration msmtprc</label>
+                  <input v-model="localConfig.msmtprc_path" type="text" placeholder="~/.msmtprc" class="form-input" />
                 </div>
                 <div>
                   <label class="block text-sm font-medium text-gray-700 dark:text-zinc-300 mb-1">Dossier d'envoi par défaut</label>
@@ -234,8 +234,8 @@ const isOpen = ref(false);
 const isSaving = ref(false);
 
 const localConfig = ref<AppConfig>({
-  root_mail_dir: '',
-  default_path: '',
+   mbsyncrc_path: '',
+  msmtprc_path: '',
   limit: 1000,
   accounts: [],
   default_sent_folder: '',
@@ -310,8 +310,8 @@ const saveConfig = async () => {
 
     // Assainissement des données avant envoi à Rust
     const payloadToSave: AppConfig = {
-      root_mail_dir: localConfig.value.root_mail_dir || '',
-      default_path: localConfig.value.default_path || '',
+      mbsyncrc_path: localConfig.value.mbsyncrc_path || '',
+      msmtprc_path: localConfig.value.msmtprc_path || '',
       limit: localConfig.value.limit || 1000,
       default_sent_folder: localConfig.value.default_sent_folder || 'Sent',
       calendaremail: localConfig.value.calendaremail || '',

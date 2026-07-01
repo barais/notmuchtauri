@@ -37,6 +37,7 @@ Pour optimiser les performances du pont Tauri, le backend transforme le modèle 
 - `has_attachments`: `boolean`
 
 ### Thread
+
 - `id`: `String`
 - `messages`: `String[]`
 - `subject`: `String`
